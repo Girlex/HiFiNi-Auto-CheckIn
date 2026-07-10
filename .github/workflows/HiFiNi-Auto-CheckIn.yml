@@ -35,4 +35,5 @@ jobs:
           mvn -B exec:java \
           -Dexec.mainClass=cloud.ohiyou.HifiniApplication \
           -Dexec.cleanupDaemonThreads=false
-
+    permissions:
+      contents: read    # 允许 checkout 代码   

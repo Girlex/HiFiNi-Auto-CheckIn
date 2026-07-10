@@ -50,12 +50,11 @@ public class HifihiSignService implements ISignService {
                     .addHeader("Referer", HifiniConstants.HIFIHI_SIGN_URL)
                     .addHeader("Accept", "application/json, text/javascript, */*; q=0.01")
                     .addHeader("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-                    .addHeader("Accept-Encoding", "gzip, deflate")
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
-                    return new SignResultVO(0, "请求失败，Http状态码：" + response.code());
+                    return new SignResultVO(2, "请求失败，Http状态码：" + response.code());
                 }
 
                 String responseBody = ResponseUtils.readResponse(response);
@@ -64,7 +63,7 @@ public class HifihiSignService implements ISignService {
             }
         } catch (Exception e) {
             logger.error("HiFiHi 签到异常: {}", e.getMessage(), e);
-            return new SignResultVO(0, "签到异常：" + e.getMessage());
+            return new SignResultVO(2, "签到异常：" + e.getMessage());
         }
     }
 
@@ -94,7 +93,6 @@ public class HifihiSignService implements ISignService {
                     .addHeader("Referer", HifiniConstants.HIFIHI_BASE_URL + "/")
                     .addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .addHeader("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-                    .addHeader("Accept-Encoding", "gzip, deflate")
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
@@ -131,7 +129,6 @@ public class HifihiSignService implements ISignService {
                     .addHeader("Referer", HifiniConstants.HIFIHI_BASE_URL + "/")
                     .addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .addHeader("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-                    .addHeader("Accept-Encoding", "gzip, deflate")
                     .build();
 
             try (Response response = client.newCall(request).execute()) {

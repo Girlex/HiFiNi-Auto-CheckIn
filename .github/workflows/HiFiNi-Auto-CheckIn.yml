@@ -9,9 +9,9 @@ name: HiFINI-Auto-CheckIn
 on:
   workflow_dispatch:
   schedule:
-    # UTC 22:30 = 北京时间上午 06:30
-    # GitHub schedule 本身有 0~30 分钟随机延迟，叠加下方随机 sleep 进一步打散
-    - cron: "30 22 * * *"
+    # UTC 16:05 = 北京时间 00:05——每天零点刚过即签，避开整点高峰降低 GitHub 调度延迟
+    # GitHub schedule 自带 0~30 分钟随机延迟，叠加下方随机 sleep 进一步打散
+    - cron: "5 16 * * *"
 
 jobs:
   build:
@@ -32,9 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 随机延迟 0~20 分钟（打散签到时间）
+      - name: 随机延迟 0~5 分钟（打散签到时间，同时保证零点后尽快完成）
         run: |
-          DELAY=$((RANDOM % 1200))
+          DELAY=$((RANDOM % 300))
           echo "随机延迟 ${DELAY} 秒后开始签到"
           sleep $DELAY
 

@@ -4,9 +4,9 @@ import cloud.ohiyou.constant.HifiniConstants;
 import cloud.ohiyou.service.ISignService;
 import cloud.ohiyou.utils.OkHttpUtils;
 import cloud.ohiyou.utils.ResponseUtils;
+import cloud.ohiyou.utils.SignHttpHelper;
 import cloud.ohiyou.vo.SignResultVO;
 import cloud.ohiyou.vo.UserInfoVO;
-import com.alibaba.fastjson2.JSON;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,34 +35,7 @@ public class HifitiSignService implements ISignService {
      */
     @Override
     public SignResultVO signIn(String cookie) {
-        try {
-            String userAgent = getRandomUserAgent();
-
-            RequestBody emptyBody = RequestBody.create("",
-                    MediaType.get("application/x-www-form-urlencoded; charset=UTF-8"));
-
-            Request request = new Request.Builder()
-                    .url(HifiniConstants.SIGN_URL)
-                    .post(emptyBody)
-                    .addHeader("Cookie", cookie)
-                    .addHeader("User-Agent", userAgent)
-                    .addHeader("X-Requested-With", "XMLHttpRequest")
-                    .addHeader("Referer", HifiniConstants.SIGN_URL)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return new SignResultVO(2, "请求失败，Http状态码：" + response.code());
-                }
-
-                String responseBody = ResponseUtils.readResponse(response);
-                logger.info("签到响应内容: {}", responseBody);
-                return JSON.parseObject(responseBody, SignResultVO.class);
-            }
-        } catch (Exception e) {
-            logger.error("签到异常: {}", e.getMessage(), e);
-            return new SignResultVO(2, "签到异常：" + e.getMessage());
-        }
+        return SignHttpHelper.postSign(HifiniConstants.HIFITI_SIGN_URL, cookie, "HiFiTi");
     }
 
     /**

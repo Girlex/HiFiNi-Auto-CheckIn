@@ -2,6 +2,7 @@ package cloud.ohiyou.vo;
 
 import cloud.ohiyou.constant.SignResultCode;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 签到结果值对象
@@ -10,6 +11,7 @@ import lombok.Data;
  * @since 2024/2/21 11:37
  */
 @Data
+@NoArgsConstructor
 public class SignResultVO {
     /**
      * 返回code

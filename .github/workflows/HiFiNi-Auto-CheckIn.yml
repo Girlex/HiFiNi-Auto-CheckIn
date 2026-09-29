@@ -1,12 +1,16 @@
-# This workflow will build a Java project with Ant
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-ant
+# HiFiNi/HiFiTi/HiFiHi 自动签到
+# 优化点：
+#   1. 运行时间随机化——避免所有 fork 在同一分钟从 GitHub IP 段集中签到，降低被站点风控的概率
+#   2. 失败自动重跑——网络抖动/IP 被临时拦截时自动再试一次
+#   3. 支持 HTTPS_PROXY secret——GitHub Actions 服务器被站点完全屏蔽时，可配置自己的代理出口
 
 name: HiFINI-Auto-CheckIn
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "59 15 * * *" # 北京时间上午06:30
+    # 北京时间上午 06:30（GitHub schedule 本身有 0~30 分钟的随机延迟，叠加下方随机 sleep 进一步打散）
+    - cron: "59 15 * * *"
 
 jobs:
   build:
@@ -20,20 +24,42 @@ jobs:
       TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
       GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
       GOTIFY_APP_TOKEN: ${{ secrets.GOTIFY_APP_TOKEN }}
+      # 可选：在仓库 Secrets 中配置 HTTPS_PROXY（如 http://user:pass@host:port），签到请求将走该代理
+      HTTPS_PROXY: ${{ secrets.HTTPS_PROXY }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: 随机延迟 0~20 分钟（打散签到时间）
+        run: |
+          DELAY=$((RANDOM % 1200))
+          echo "随机延迟 ${DELAY} 秒后开始签到"
+          sleep $DELAY
+
       - name: Set up JDK 8
         uses: actions/setup-java@v3
         with:
           java-version: '8'
           distribution: 'temurin'
+
       - name: Build with Maven
+        id: checkin
+        continue-on-error: true
         run: |
           mvn compile
           mvn -B exec:java \
           -Dexec.mainClass=cloud.ohiyou.HifiniApplication \
           -Dexec.cleanupDaemonThreads=false
+
+      - name: 失败自动重跑（等待 5 分钟后重试一次）
+        if: steps.checkin.outcome == 'failure'
+        run: |
+          echo "首次签到失败，5 分钟后自动重试..."
+          sleep 300
+          mvn -B exec:java \
+          -Dexec.mainClass=cloud.ohiyou.HifiniApplication \
+          -Dexec.cleanupDaemonThreads=false
+
     permissions:
-      contents: read    # 允许 checkout 代码   
+      contents: read    # 允许 checkout 代码

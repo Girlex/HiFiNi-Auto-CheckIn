@@ -71,7 +71,11 @@ public final class HifiniConstants {
 
     // ==================== 正则表达式 ====================
     public static final String REGEX_USERNAME = "<li class=\"nav-item username\"><a class=\"nav-link\" href=\"my.htm\"><img class=\"avatar-1\" src=\".*?\"> (.*?)</a></li>";
+    /** 用户名宽松备选：不依赖外层 li 的 class，只要 my.htm 链接内含头像图 + 文本 */
+    public static final String REGEX_USERNAME_FALLBACK = "<a[^>]*href=\"my\\.htm\"[^>]*>\\s*<img[^>]*>\\s*([^<]+?)\\s*</a>";
     public static final String REGEX_COINS = "<span class=\"text-muted\">金币：</span><em style=\"color: #f57e42;font-style: normal;font-weight: bolder;\">(\\d+)</em>";
+    /** 金币宽松备选：不依赖 em 的内联样式 */
+    public static final String REGEX_COINS_FALLBACK = "金币[：:]\\s*<em[^>]*>\\s*(\\d+)\\s*</em>";
     public static final String REGEX_SIGN_STREAK = "var s3 = '连续签到(\\d+)天';";
     public static final String REGEX_SIGN_STREAK_FALLBACK = "连续签到(\\d+)天";
 }

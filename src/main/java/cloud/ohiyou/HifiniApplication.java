@@ -33,6 +33,7 @@ public class HifiniApplication {
         List<CookieSignResult> allResults = new ArrayList<>();
         CookieHandler cookieHandler = new CookieHandler();
         SignTaskExecutor executor = new SignTaskExecutor();
+        int failedCount = 0;
 
         try {
             EnvConfig config = EnvConfig.get();
@@ -70,12 +71,26 @@ public class HifiniApplication {
             ResultPublisher publisher = new ResultPublisher(strategies);
             publisher.publish(allResults);
 
+            // 统计失败账号数（Cookie失效/网络失败均计入；"今日已签到"算成功）
+            for (CookieSignResult result : allResults) {
+                if (result.getSignResult() == null || !result.getSignResult().isSuccess()) {
+                    failedCount++;
+                }
+            }
+
         } catch (Exception e) {
             logger.error("签到任务执行失败: {}", e.getMessage(), e);
+            failedCount++;
         } finally {
             executor.shutdown();
             OkHttpUtils.shutdown();
             logger.info("自动签到任务完成");
+        }
+
+        // 有失败时以非零退出码结束，供 CI 触发重跑与告警
+        if (failedCount > 0) {
+            logger.warn("共 {} 个账号签到失败，进程以非零状态退出", failedCount);
+            System.exit(1);
         }
     }
 

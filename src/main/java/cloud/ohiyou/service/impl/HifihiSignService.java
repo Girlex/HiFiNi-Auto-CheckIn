@@ -124,18 +124,25 @@ public class HifihiSignService implements ISignService {
         UserInfoVO userInfo = new UserInfoVO();
 
         try {
-            // 解析用户名
-            Pattern namePattern = Pattern.compile(HifiniConstants.REGEX_USERNAME);
-            Matcher nameMatcher = namePattern.matcher(pageContent);
-            if (nameMatcher.find()) {
-                userInfo.setUserName(nameMatcher.group(1).trim());
+            // 解析用户名：先精确匹配，失败则用宽松备选
+            String userName = matchFirst(pageContent, HifiniConstants.REGEX_USERNAME);
+            if (userName == null) {
+                userName = matchFirst(pageContent, HifiniConstants.REGEX_USERNAME_FALLBACK);
+                if (userName != null) {
+                    logger.debug("HiFiHi 用户名通过备用正则解析成功");
+                }
+            }
+            if (userName != null) {
+                userInfo.setUserName(userName.trim());
             }
 
-            // 解析金币数量
-            Pattern coinPattern = Pattern.compile(HifiniConstants.REGEX_COINS);
-            Matcher coinMatcher = coinPattern.matcher(pageContent);
-            if (coinMatcher.find()) {
-                userInfo.setCoins(Integer.parseInt(coinMatcher.group(1)));
+            // 解析金币数量：先精确匹配，失败则用宽松备选
+            String coins = matchFirst(pageContent, HifiniConstants.REGEX_COINS);
+            if (coins == null) {
+                coins = matchFirst(pageContent, HifiniConstants.REGEX_COINS_FALLBACK);
+            }
+            if (coins != null) {
+                userInfo.setCoins(Integer.parseInt(coins));
             }
 
         } catch (Exception e) {
@@ -143,6 +150,16 @@ public class HifihiSignService implements ISignService {
         }
 
         return userInfo;
+    }
+
+    /**
+     * 在页面内容中匹配正则的第一个捕获组
+     *
+     * @return 匹配内容；未命中返回 null
+     */
+    private String matchFirst(String content, String regex) {
+        Matcher matcher = Pattern.compile(regex).matcher(content);
+        return matcher.find() ? matcher.group(1) : null;
     }
 
     /**
